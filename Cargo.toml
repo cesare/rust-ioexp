@@ -8,4 +8,8 @@ edition = "2018"
 name = "echo"
 path = "src/echo.rs"
 
+[[bin]]
+name = "cat"
+path = "src/cat.rs"
+
 [dependencies]
