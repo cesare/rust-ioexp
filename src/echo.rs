@@ -12,10 +12,7 @@ fn wait_for_input() -> Option<String> {
 }
 
 fn main() {
-    loop {
-        match wait_for_input() {
-            Some(text) => { print!("{}", text) }
-            None => { break; }
-        }
+    while let Some(text) = wait_for_input() {
+        print!("{}", text)
     }
 }
