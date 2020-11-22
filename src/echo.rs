@@ -1,18 +1,13 @@
 use std::io::{self};
 
-fn wait_for_input() -> Option<String> {
+fn wait_for_input() -> Result<Option<String>, io::Error> {
     let mut buffer = String::new();
-    match io::stdin().read_line(&mut buffer) {
-        Ok(0) => None,
-        Ok(_) => {
-            Some(buffer)
-        }
-        Err(_) => None
-    }
+    io::stdin().read_line(&mut buffer)
+        .and_then(|n| if n == 0 { Ok(None) } else { Ok(Some(buffer)) })
 }
 
 fn main() {
-    while let Some(text) = wait_for_input() {
+    while let Some(text) = wait_for_input().unwrap() {
         print!("{}", text)
     }
 }
