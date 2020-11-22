@@ -6,8 +6,10 @@ fn wait_for_input() -> Result<Option<String>, io::Error> {
         .and_then(|n| if n == 0 { Ok(None) } else { Ok(Some(buffer)) })
 }
 
-fn main() {
-    while let Some(text) = wait_for_input().unwrap() {
+fn main() -> Result<(), io::Error> {
+    while let Some(text) = wait_for_input()? {
         print!("{}", text)
     }
+
+    Ok(())
 }
