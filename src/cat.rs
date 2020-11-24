@@ -15,10 +15,10 @@ fn blockread(reader: &mut dyn Read) -> Result<Option<Vec<u8>>, io::Error> {
 fn show(path_name: &str) -> Result<(), io::Error> {
     let path = Path::new(path_name);
     let file = File::open(path)?;
-    let mut f = BufReader::new(file);
+    let mut reader = BufReader::new(file);
 
     loop {
-        match blockread(&mut f)? {
+        match blockread(&mut reader)? {
             None => break,
             Some(content) => {
                 io::stdout().write(&content)?;
