@@ -2,19 +2,26 @@ use std::env::args;
 use std::fs::File;
 use std::io::{self, BufReader, Read, Write};
 use std::path::Path;
+use std::vec::Vec;
+
+fn blockread(reader: &mut dyn Read) -> Result<Option<Vec<u8>>, io::Error> {
+    let mut buf = [0; 1024];
+    match reader.read(&mut buf)? {
+        0 => Ok(None),
+        n => Ok(Some(buf[..n].to_vec()))
+    }
+}
 
 fn show(path_name: &str) -> Result<(), io::Error> {
     let path = Path::new(path_name);
     let file = File::open(path)?;
     let mut f = BufReader::new(file);
 
-    let mut buf = [0; 1024];
     loop {
-        match f.read(&mut buf)? {
-            0 => break,
-            n => {
-                let content = &buf[..n];
-                io::stdout().write(content)?;
+        match blockread(&mut f)? {
+            None => break,
+            Some(content) => {
+                io::stdout().write(&content)?;
             }
         }
     }
