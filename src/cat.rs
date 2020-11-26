@@ -1,28 +1,44 @@
 use std::env::args;
 use std::fs::File;
 use std::io::{self, BufReader, Read, Write};
+use std::iter::Iterator;
 use std::path::Path;
 use std::vec::Vec;
 
-fn blockread(reader: &mut dyn Read) -> Result<Option<Vec<u8>>, io::Error> {
-    let mut buf = [0; 1024];
-    match reader.read(&mut buf)? {
-        0 => Ok(None),
-        n => Ok(Some(buf[..n].to_vec()))
+struct FileInputStream {
+    reader: BufReader<File>,
+}
+
+impl FileInputStream {
+    pub fn new(path: &Path) -> Result<FileInputStream, io::Error> {
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        Ok(FileInputStream { reader: reader })
+    }
+}
+
+impl Iterator for FileInputStream {
+    type Item = Result<Vec<u8>, io::Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let mut buf = [0; 1024];
+        match self.reader.read(&mut buf) {
+            Err(e) => Some(Err(e)),
+            Ok(n) => {
+                if n == 0 { None } else { Some(Ok(buf[..n].to_vec())) }
+            }
+        }
     }
 }
 
 fn show(path_name: &str) -> Result<(), io::Error> {
     let path = Path::new(path_name);
-    let file = File::open(path)?;
-    let mut reader = BufReader::new(file);
+    let fis = FileInputStream::new(path)?;
 
-    loop {
-        match blockread(&mut reader)? {
-            None => break,
-            Some(content) => {
-                io::stdout().write(&content)?;
-            }
+    for result in fis {
+        match result {
+            Err(e) => { return Err(e) },
+            Ok(content) => { io::stdout().write(&content)?; }
         }
     }
 
