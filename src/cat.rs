@@ -10,10 +10,9 @@ struct FileInputStream {
 }
 
 impl FileInputStream {
-    pub fn new(path: &Path) -> Result<FileInputStream, io::Error> {
-        let file = File::open(path)?;
+    pub fn new(file: File) -> FileInputStream {
         let reader = BufReader::new(file);
-        Ok(FileInputStream { reader: reader })
+        FileInputStream { reader: reader }
     }
 }
 
@@ -33,7 +32,8 @@ impl Iterator for FileInputStream {
 
 fn show(path_name: &str) -> Result<(), io::Error> {
     let path = Path::new(path_name);
-    let fis = FileInputStream::new(path)?;
+    let file = File::open(path)?;
+    let fis = FileInputStream::new(file);
 
     for result in fis {
         match result {
