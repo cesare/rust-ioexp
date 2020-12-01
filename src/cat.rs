@@ -6,11 +6,11 @@ use std::path::Path;
 use std::vec::Vec;
 
 struct FileInputStream {
-    reader: BufReader<File>,
+    reader: BufReader<Box<dyn Read>>,
 }
 
 impl FileInputStream {
-    pub fn new(file: File) -> FileInputStream {
+    pub fn new(file: Box<dyn Read>) -> FileInputStream {
         let reader = BufReader::new(file);
         FileInputStream { reader: reader }
     }
@@ -33,7 +33,7 @@ impl Iterator for FileInputStream {
 fn show(path_name: &str) -> Result<(), io::Error> {
     let path = Path::new(path_name);
     let file = File::open(path)?;
-    let fis = FileInputStream::new(file);
+    let fis = FileInputStream::new(Box::new(file));
 
     for result in fis {
         match result {
