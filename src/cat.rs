@@ -14,6 +14,21 @@ impl FileInputStream {
         let reader = BufReader::new(file);
         FileInputStream { reader: reader }
     }
+
+    pub fn from_stdin() -> FileInputStream {
+        let read = Box::new(Box::new(std::io::stdin()));
+        Self::new(read)
+    }
+
+    pub fn show(self) -> Result<(), io::Error> {
+        for result in self {
+            match result {
+                Err(e) => { return Err(e) },
+                Ok(content) => { io::stdout().write(&content)?; }
+            }
+        }
+        Ok(())
+    }
 }
 
 impl Iterator for FileInputStream {
@@ -34,18 +49,15 @@ fn show(path_name: &str) -> Result<(), io::Error> {
     let path = Path::new(path_name);
     let file = File::open(path)?;
     let fis = FileInputStream::new(Box::new(file));
-
-    for result in fis {
-        match result {
-            Err(e) => { return Err(e) },
-            Ok(content) => { io::stdout().write(&content)?; }
-        }
-    }
-
-    Ok(())
+    fis.show()
 }
 
 fn main() -> Result<(), io::Error> {
+    if args().count() == 1 {
+        let fis = FileInputStream::from_stdin();
+        return fis.show()
+    }
+
     for name in args().skip(1) {
         show(&name)?
     }
