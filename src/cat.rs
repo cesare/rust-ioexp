@@ -45,13 +45,6 @@ impl Iterator for FileInputStream {
     }
 }
 
-fn show(path_name: &str) -> Result<(), io::Error> {
-    let path = Path::new(path_name);
-    let file = File::open(path)?;
-    let fis = FileInputStream::new(Box::new(file));
-    fis.show()
-}
-
 fn main() -> Result<(), io::Error> {
     if args().count() == 1 {
         let fis = FileInputStream::from_stdin();
@@ -59,7 +52,10 @@ fn main() -> Result<(), io::Error> {
     }
 
     for name in args().skip(1) {
-        show(&name)?
+        let path = Path::new(&name);
+        let file = File::open(path)?;
+        let fis = FileInputStream::new(Box::new(file));
+        fis.show()?;
     }
 
     Ok(())
