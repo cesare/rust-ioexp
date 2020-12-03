@@ -10,13 +10,11 @@ struct FileInputStream {
 
 impl FileInputStream {
     pub fn new(file: Box<dyn Read>) -> FileInputStream {
-        let reader = BufReader::new(file);
-        FileInputStream { reader: reader }
+        FileInputStream { reader: BufReader::new(file) }
     }
 
     pub fn from_stdin() -> FileInputStream {
-        let read = Box::new(std::io::stdin());
-        Self::new(read)
+        Self::new(Box::new(io::stdin()))
     }
 
     pub fn show(self) -> Result<(), io::Error> {
