@@ -15,7 +15,7 @@ impl FileInputStream {
     }
 
     pub fn from_stdin() -> FileInputStream {
-        let read = Box::new(Box::new(std::io::stdin()));
+        let read = Box::new(std::io::stdin());
         Self::new(read)
     }
 
