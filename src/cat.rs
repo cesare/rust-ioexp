@@ -2,7 +2,6 @@ use std::env::args;
 use std::fs::File;
 use std::io::{self, BufReader, Read, Write};
 use std::iter::Iterator;
-use std::path::Path;
 use std::vec::Vec;
 
 struct FileInputStream {
@@ -46,16 +45,14 @@ impl Iterator for FileInputStream {
 }
 
 fn main() -> Result<(), io::Error> {
-    if args().count() == 1 {
-        let fis = FileInputStream::from_stdin();
-        return fis.show()
+    let paths: Vec<String> = args().skip(1).collect();
+    if paths.is_empty() {
+        return FileInputStream::from_stdin().show()
     }
 
-    for name in args().skip(1) {
-        let path = Path::new(&name);
+    for path in paths {
         let file = File::open(path)?;
-        let fis = FileInputStream::new(Box::new(file));
-        fis.show()?;
+        FileInputStream::new(Box::new(file)).show()?;
     }
 
     Ok(())
