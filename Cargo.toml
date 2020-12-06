@@ -13,3 +13,4 @@ name = "cat"
 path = "src/cat.rs"
 
 [dependencies]
+async-std = { version = "1.7.0", features = ["attributes"] }
