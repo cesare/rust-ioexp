@@ -12,5 +12,9 @@ path = "src/echo.rs"
 name = "cat"
 path = "src/cat.rs"
 
+[[bin]]
+name = "async_echo"
+path = "src/async_echo.rs"
+
 [dependencies]
 async-std = { version = "1.7.0", features = ["attributes"] }
