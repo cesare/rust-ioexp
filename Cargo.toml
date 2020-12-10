@@ -21,4 +21,4 @@ name = "async_cat"
 path = "src/async_cat.rs"
 
 [dependencies]
-async-std = { version = "1.7.0", features = ["attributes"] }
+async-std = { version = "1.8.0", features = ["attributes"] }
