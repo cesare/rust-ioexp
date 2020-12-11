@@ -22,3 +22,4 @@ path = "src/async_cat.rs"
 
 [dependencies]
 async-std = { version = "1.8.0", features = ["attributes"] }
+pin-project = "1.0.2"
