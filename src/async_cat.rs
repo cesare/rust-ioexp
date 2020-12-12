@@ -16,6 +16,13 @@ impl FileInputStream {
     fn new(file: File) -> FileInputStream {
         FileInputStream { file: file }
     }
+
+    async fn show(&mut self) -> Result<(), io::Error> {
+        while let Some(content) = self.next().await {
+            io::stdout().write(&content?).await?;
+        }
+        Ok(())
+    }
 }
 
 impl Stream for FileInputStream {
@@ -35,13 +42,7 @@ impl Stream for FileInputStream {
 
 async fn show(path: &str) -> Result<(), io::Error> {
     let file = File::open(path).await?;
-    let mut stream = FileInputStream::new(file);
-
-    while let Some(content) = stream.next().await {
-        io::stdout().write(&content?).await?;
-    }
-
-    Ok(())
+    FileInputStream::new(file).show().await
 }
 
 #[async_std::main]
