@@ -4,19 +4,23 @@ use std::io::{self, BufReader, Read, Write};
 use std::iter::Iterator;
 use std::vec::Vec;
 
-struct FileInputStream {
-    reader: BufReader<Box<dyn Read>>,
+struct FileInputStream<T: Read> {
+    reader: BufReader<Box<T>>,
 }
 
-impl FileInputStream {
-    pub fn new(file: Box<dyn Read>) -> FileInputStream {
+impl FileInputStream<File> {
+    pub fn new(file: Box<File>) -> FileInputStream<File> {
         FileInputStream { reader: BufReader::new(file) }
     }
+}
 
-    pub fn from_stdin() -> FileInputStream {
-        Self::new(Box::new(io::stdin()))
+impl FileInputStream<io::Stdin> {
+    pub fn from_stdin() -> FileInputStream<io::Stdin> {
+        FileInputStream { reader: BufReader::new(Box::new(io::stdin())) }
     }
+}
 
+impl<T: Read> FileInputStream<T> {
     pub fn show(self) -> Result<(), io::Error> {
         for result in self {
             match result {
@@ -28,7 +32,7 @@ impl FileInputStream {
     }
 }
 
-impl Iterator for FileInputStream {
+impl<T: Read> Iterator for FileInputStream<T> {
     type Item = Result<Vec<u8>, io::Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
