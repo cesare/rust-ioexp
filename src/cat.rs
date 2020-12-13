@@ -1,22 +1,22 @@
 use std::env::args;
 use std::fs::File;
-use std::io::{self, BufReader, Read, Write};
+use std::io::{self, Read, Write};
 use std::iter::Iterator;
 use std::vec::Vec;
 
 struct FileInputStream<T: Read> {
-    reader: BufReader<Box<T>>,
+    reader: Box<T>,
 }
 
 impl FileInputStream<File> {
     pub fn new(file: Box<File>) -> FileInputStream<File> {
-        FileInputStream { reader: BufReader::new(file) }
+        FileInputStream { reader: file }
     }
 }
 
 impl FileInputStream<io::Stdin> {
     pub fn from_stdin() -> FileInputStream<io::Stdin> {
-        FileInputStream { reader: BufReader::new(Box::new(io::stdin())) }
+        FileInputStream { reader: Box::new(io::stdin()) }
     }
 }
 
