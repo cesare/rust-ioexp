@@ -1,22 +1,24 @@
 use std::env::args;
 use std::pin::Pin;
 use async_std::fs::File;
-use async_std::io::{self};
+use async_std::io::{self, Read};
 use async_std::prelude::*;
 use async_std::task::{Context, Poll};
 use std::vec::Vec;
 use pin_project::pin_project;
 
 #[pin_project]
-struct FileInputStream {
-    file: File,
+struct FileInputStream<T: Read> {
+    file: T,
 }
 
-impl FileInputStream {
-    fn new(file: File) -> FileInputStream {
+impl FileInputStream<File> {
+    fn new(file: File) -> FileInputStream<File> {
         FileInputStream { file: file }
     }
+}
 
+impl FileInputStream<File> {
     async fn show(&mut self) -> Result<(), io::Error> {
         while let Some(content) = self.next().await {
             io::stdout().write(&content?).await?;
@@ -25,7 +27,7 @@ impl FileInputStream {
     }
 }
 
-impl Stream for FileInputStream {
+impl Stream for FileInputStream<File> {
     type Item = Result<Vec<u8>, io::Error>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
