@@ -5,18 +5,18 @@ use std::iter::Iterator;
 use std::vec::Vec;
 
 struct FileInputStream<T: Read> {
-    reader: Box<T>,
+    reader: T,
 }
 
 impl FileInputStream<File> {
-    pub fn new(file: Box<File>) -> FileInputStream<File> {
+    pub fn new(file: File) -> FileInputStream<File> {
         FileInputStream { reader: file }
     }
 }
 
 impl FileInputStream<io::Stdin> {
     pub fn from_stdin() -> FileInputStream<io::Stdin> {
-        FileInputStream { reader: Box::new(io::stdin()) }
+        FileInputStream { reader: io::stdin() }
     }
 }
 
@@ -54,7 +54,7 @@ fn main() -> Result<(), io::Error> {
 
     for path in paths {
         let file = File::open(path)?;
-        FileInputStream::new(Box::new(file)).show()?;
+        FileInputStream::new(file).show()?;
     }
 
     Ok(())
