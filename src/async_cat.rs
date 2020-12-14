@@ -8,7 +8,7 @@ use std::vec::Vec;
 use pin_project::pin_project;
 
 #[pin_project]
-struct FileInputStream<T: Read> {
+struct FileInputStream<T: Read + Unpin> {
     file: T,
 }
 
@@ -18,7 +18,7 @@ impl FileInputStream<File> {
     }
 }
 
-impl FileInputStream<File> {
+impl<T: Read + Unpin> FileInputStream<T> {
     async fn show(&mut self) -> Result<(), io::Error> {
         while let Some(content) = self.next().await {
             io::stdout().write(&content?).await?;
@@ -27,7 +27,7 @@ impl FileInputStream<File> {
     }
 }
 
-impl Stream for FileInputStream<File> {
+impl<T: Read + Unpin> Stream for FileInputStream<T> {
     type Item = Result<Vec<u8>, io::Error>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
