@@ -39,9 +39,8 @@ impl<T: Read> Iterator for FileInputStream<T> {
         let mut buf = [0; 1024];
         match self.reader.read(&mut buf) {
             Err(e) => Some(Err(e)),
-            Ok(n) => {
-                if n == 0 { None } else { Some(Ok(buf[..n].to_vec())) }
-            }
+            Ok(0)  => None,
+            Ok(n)  => Some(Ok(buf[..n].to_vec())),
         }
     }
 }
