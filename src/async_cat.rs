@@ -4,7 +4,6 @@ use async_std::fs::File;
 use async_std::io::{self, Read};
 use async_std::prelude::*;
 use async_std::task::{Context, Poll};
-use std::vec::Vec;
 use pin_project::pin_project;
 
 #[pin_project]
