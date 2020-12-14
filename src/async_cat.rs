@@ -18,6 +18,12 @@ impl FileInputStream<File> {
     }
 }
 
+impl FileInputStream<io::Stdin> {
+    fn from_stdin() -> FileInputStream<io::Stdin> {
+        FileInputStream { file: io::stdin() }
+    }
+}
+
 impl<T: Read + Unpin> FileInputStream<T> {
     async fn show(&mut self) -> Result<(), io::Error> {
         while let Some(content) = self.next().await {
@@ -50,6 +56,9 @@ async fn show(path: &str) -> Result<(), io::Error> {
 #[async_std::main]
 async fn main() -> Result<(), io::Error> {
     let paths: Vec<String> = args().skip(1).collect();
+    if paths.is_empty() {
+        return FileInputStream::from_stdin().show().await
+    }
 
     for path in paths {
         show(&path).await?
