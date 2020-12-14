@@ -8,18 +8,18 @@ use pin_project::pin_project;
 
 #[pin_project]
 struct FileInputStream<T: Read + Unpin> {
-    file: T,
+    reader: T,
 }
 
 impl FileInputStream<File> {
     fn new(file: File) -> FileInputStream<File> {
-        FileInputStream { file: file }
+        FileInputStream { reader: file }
     }
 }
 
 impl FileInputStream<io::Stdin> {
     fn from_stdin() -> FileInputStream<io::Stdin> {
-        FileInputStream { file: io::stdin() }
+        FileInputStream { reader: io::stdin() }
     }
 }
 
@@ -37,7 +37,7 @@ impl<T: Read + Unpin> Stream for FileInputStream<T> {
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let mut buf = [0; 1024];
-        let mut f = self.project().file.read(&mut buf);
+        let mut f = self.project().reader.read(&mut buf);
         match Pin::new(&mut f).poll(cx) {
             Poll::Pending => Poll::Pending,
             Poll::Ready(Ok(0))  => { Poll::Ready(None) },
