@@ -8,18 +8,6 @@ struct FileInputStream<T: Read> {
     reader: T,
 }
 
-impl FileInputStream<File> {
-    pub fn new(file: File) -> FileInputStream<File> {
-        FileInputStream { reader: file }
-    }
-}
-
-impl FileInputStream<io::Stdin> {
-    pub fn from_stdin() -> FileInputStream<io::Stdin> {
-        FileInputStream { reader: io::stdin() }
-    }
-}
-
 impl<T: Read> FileInputStream<T> {
     pub fn show(self) -> Result<(), io::Error> {
         for result in self {
@@ -45,15 +33,27 @@ impl<T: Read> Iterator for FileInputStream<T> {
     }
 }
 
+impl From<File> for FileInputStream<File> {
+    fn from(file: File) -> Self {
+        FileInputStream { reader: file }
+    }
+}
+
+impl From<io::Stdin> for FileInputStream<io::Stdin> {
+    fn from(stdin: io::Stdin) -> Self {
+        FileInputStream { reader: stdin }
+    }
+}
+
 fn main() -> Result<(), io::Error> {
     let paths: Vec<String> = args().skip(1).collect();
     if paths.is_empty() {
-        return FileInputStream::from_stdin().show()
+        return FileInputStream::from(io::stdin()).show()
     }
 
     for path in paths {
         let file = File::open(path)?;
-        FileInputStream::new(file).show()?;
+        FileInputStream::from(file).show()?;
     }
 
     Ok(())

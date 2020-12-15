@@ -11,18 +11,6 @@ struct FileInputStream<T: Read + Unpin> {
     reader: T,
 }
 
-impl FileInputStream<File> {
-    fn new(file: File) -> FileInputStream<File> {
-        FileInputStream { reader: file }
-    }
-}
-
-impl FileInputStream<io::Stdin> {
-    fn from_stdin() -> FileInputStream<io::Stdin> {
-        FileInputStream { reader: io::stdin() }
-    }
-}
-
 impl<T: Read + Unpin> FileInputStream<T> {
     async fn show(&mut self) -> Result<(), io::Error> {
         while let Some(content) = self.next().await {
@@ -47,16 +35,28 @@ impl<T: Read + Unpin> Stream for FileInputStream<T> {
     }
 }
 
+impl From<File> for FileInputStream<File> {
+    fn from(file: File) -> Self {
+        FileInputStream { reader: file }
+    }
+}
+
+impl From<io::Stdin> for FileInputStream<io::Stdin> {
+    fn from(stdin: io::Stdin) -> Self {
+        FileInputStream { reader: stdin }
+    }
+}
+
 async fn show(path: &str) -> Result<(), io::Error> {
     let file = File::open(path).await?;
-    FileInputStream::new(file).show().await
+    FileInputStream::from(file).show().await
 }
 
 #[async_std::main]
 async fn main() -> Result<(), io::Error> {
     let paths: Vec<String> = args().skip(1).collect();
     if paths.is_empty() {
-        return FileInputStream::from_stdin().show().await
+        return FileInputStream::from(io::stdin()).show().await
     }
 
     for path in paths {
