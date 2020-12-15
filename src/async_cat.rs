@@ -47,11 +47,6 @@ impl From<io::Stdin> for FileInputStream<io::Stdin> {
     }
 }
 
-async fn show(path: &str) -> Result<(), io::Error> {
-    let file = File::open(path).await?;
-    FileInputStream::from(file).show().await
-}
-
 #[async_std::main]
 async fn main() -> Result<(), io::Error> {
     let paths: Vec<String> = args().skip(1).collect();
@@ -60,7 +55,8 @@ async fn main() -> Result<(), io::Error> {
     }
 
     for path in paths {
-        show(&path).await?
+        let file = File::open(path).await?;
+        FileInputStream::from(file).show().await?
     }
 
     Ok(())
