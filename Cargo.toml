@@ -20,6 +20,10 @@ path = "src/async_echo.rs"
 name = "async_cat"
 path = "src/async_cat.rs"
 
+[[bin]]
+name = "httpget"
+path = "src/httpget.rs"
+
 [dependencies]
 async-std = { version = "1.8.0", features = ["attributes"] }
 hyper = "0.13.9"
