@@ -1,5 +1,4 @@
 use std::env::args;
-use hyper::Client;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -9,9 +8,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     std::process::exit(111);
   }
 
-  let client = Client::new();
-  let uri = arguments[0].parse()?;
-  let response = client.get(uri).await?;
+  let uri = &arguments[0];
+  let response = reqwest::get(uri).await?;
 
   println!("Response: {}", response.status());
   Ok(())
