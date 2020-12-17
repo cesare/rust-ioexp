@@ -1,4 +1,5 @@
 use std::env::args;
+use tokio::io::{self, AsyncWriteExt};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -9,8 +10,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
   }
 
   let uri = &arguments[0];
-  let response = reqwest::get(uri).await?;
+  let mut response = reqwest::get(uri).await?;
 
   println!("Response: {}", response.status());
+
+  while let Some(chunk) = response.chunk().await? {
+    io::stdout().write(chunk.as_ref()).await?;
+  }
+
   Ok(())
 }
