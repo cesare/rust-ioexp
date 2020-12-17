@@ -28,4 +28,5 @@ path = "src/httpget.rs"
 async-std = { version = "1.8.0", features = ["attributes"] }
 hyper = "0.13.9"
 pin-project = "1.0.2"
+reqwest = "0.10.10"
 tokio = { version = "0.2", features = ["full"] }
