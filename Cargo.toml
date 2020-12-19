@@ -24,6 +24,10 @@ path = "src/async_cat.rs"
 name = "httpget"
 path = "src/httpget.rs"
 
+[[bin]]
+name = "tee"
+path = "src/tee.rs"
+
 [dependencies]
 async-std = { version = "1.8.0", features = ["attributes"] }
 futures = "0.3.8"
