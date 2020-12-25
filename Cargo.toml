@@ -28,6 +28,10 @@ path = "src/httpget.rs"
 name = "tee"
 path = "src/tee.rs"
 
+[[bin]]
+name = "ls"
+path = "src/ls.rs"
+
 [dependencies]
 async-std = { version = "1.8.0", features = ["attributes"] }
 futures = "0.3.8"
