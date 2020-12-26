@@ -1,38 +1,37 @@
 use std::env::args;
-use async_std::fs::{self, Metadata};
-use async_std::io::{self};
-use async_std::prelude::*;
+use std::fs::{self, Metadata};
+use std::io::{self};
 
-async fn show_file(path: &str, _metadata: Metadata) -> Result<(), io::Error> {
-    io::stdout().write_fmt(format_args!("{}\n", path)).await
+fn show_file(path: &str, _metadata: Metadata) -> Result<(), io::Error> {
+    println!("{}", path);
+    Ok(())
 }
 
-async fn show_directory(path: &str) -> Result<(), io::Error> {
-    let mut entries = fs::read_dir(path).await?;
-    while let Some(result) = entries.next().await {
+fn show_directory(path: &str) -> Result<(), io::Error> {
+    let mut entries = fs::read_dir(path)?;
+    while let Some(result) = entries.next() {
         let entry = result?;
-        let metadata = entry.metadata().await?;
-        show_file(&entry.file_name().to_string_lossy(), metadata).await?
+        let metadata = entry.metadata()?;
+        show_file(&entry.file_name().to_string_lossy(), metadata)?
     }
     Ok(())
 }
 
-async fn show(path: &str) -> Result<(), io::Error> {
-    let metadata = fs::metadata(path).await?;
+fn show(path: &str) -> Result<(), io::Error> {
+    let metadata = fs::metadata(path)?;
     if metadata.is_dir() {
-        show_directory(path).await?
+        show_directory(path)?
     } else {
-        show_file(path, metadata).await?
+        show_file(path, metadata)?
     }
 
     Ok(())
 }
 
-#[async_std::main]
-async fn main() -> Result<(), io::Error> {
+fn main() -> Result<(), io::Error> {
     let arguments: Vec<String> = args().skip(1).collect();
     for path in arguments {
-        show(&path).await?;
+        show(&path)?;
     }
 
     Ok(())
