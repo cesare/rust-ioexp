@@ -3,8 +3,7 @@ use std::fs::{self, Metadata};
 use std::io::{self};
 
 fn show_file(path: &str, _metadata: Metadata) -> Result<(), io::Error> {
-    println!("{}", path);
-    Ok(())
+    println!("{}", path)
 }
 
 fn show_directory(path: &str) -> Result<(), io::Error> {
@@ -20,12 +19,10 @@ fn show_directory(path: &str) -> Result<(), io::Error> {
 fn show(path: &str) -> Result<(), io::Error> {
     let metadata = fs::metadata(path)?;
     if metadata.is_dir() {
-        show_directory(path)?
+        show_directory(path)
     } else {
-        show_file(path, metadata)?
+        show_file(path, metadata)
     }
-
-    Ok(())
 }
 
 fn main() -> Result<(), io::Error> {
