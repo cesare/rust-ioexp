@@ -1,15 +1,23 @@
 use std::env::args;
-use std::fs::{self, Metadata};
+use std::fs::{self, DirEntry, Metadata};
 use std::io::{self};
 
 fn show_file(path: &str, _metadata: Metadata) -> Result<(), io::Error> {
-    println!("{}", path)
+    println!("{}", path);
+    Ok(())
+}
+
+fn collect_entries(path: &str) -> Result<Vec<DirEntry>, io::Error> {
+    let mut entries: Vec<DirEntry> = fs::read_dir(path)?
+        .filter_map(|result| result.ok())
+        .collect();
+    entries.sort_by(|a, b| a.file_name().cmp(&b.file_name()));
+    Ok(entries)
 }
 
 fn show_directory(path: &str) -> Result<(), io::Error> {
-    let mut entries = fs::read_dir(path)?;
-    while let Some(result) = entries.next() {
-        let entry = result?;
+    let entries = collect_entries(path)?;
+    for entry in entries {
         let metadata = entry.metadata()?;
         show_file(&entry.file_name().to_string_lossy(), metadata)?
     }
