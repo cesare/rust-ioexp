@@ -1,9 +1,19 @@
 use std::env::args;
 use std::fs::{self, DirEntry, Metadata};
 use std::io::{self};
+use std::os::unix::prelude::*;
 
-fn show_file(path: &str, _metadata: Metadata) -> Result<(), io::Error> {
-    println!("{}", path);
+fn show_entry(entry: &DirEntry) -> Result<(), io::Error> {
+    let filename = entry.file_name();
+    let mode = entry.metadata()?.permissions().mode();
+    println!("{:>016b} {}", mode, filename.to_string_lossy());
+    Ok(())
+}
+
+fn show_file(path: &str, metadata: Metadata) -> Result<(), io::Error> {
+    let permissions = metadata.permissions();
+    let mode = permissions.mode();
+    println!("{:>016b} {}", mode, path);
     Ok(())
 }
 
@@ -18,8 +28,7 @@ fn collect_entries(path: &str) -> Result<Vec<DirEntry>, io::Error> {
 fn show_directory(path: &str) -> Result<(), io::Error> {
     let entries = collect_entries(path)?;
     for entry in entries {
-        let metadata = entry.metadata()?;
-        show_file(&entry.file_name().to_string_lossy(), metadata)?
+        show_entry(&entry)?;
     }
     Ok(())
 }
