@@ -5,15 +5,16 @@ use std::os::unix::prelude::*;
 
 fn show_entry(entry: &DirEntry) -> Result<(), io::Error> {
     let filename = entry.file_name();
-    let mode = entry.metadata()?.permissions().mode();
-    println!("{:>016b} {}", mode, filename.to_string_lossy());
+    let metadata = entry.metadata()?;
+    let mode = metadata.permissions().mode();
+    println!("{:>016b} {:>6} {}", mode, metadata.len(), filename.to_string_lossy());
     Ok(())
 }
 
 fn show_file(path: &str, metadata: Metadata) -> Result<(), io::Error> {
     let permissions = metadata.permissions();
     let mode = permissions.mode();
-    println!("{:>016b} {}", mode, path);
+    println!("{:>016b} {:>6} {}", mode, metadata.len(), path);
     Ok(())
 }
 
