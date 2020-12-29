@@ -32,13 +32,6 @@ impl Entry {
     }
 }
 
-fn show_file(path: &str, metadata: Metadata) -> Result<(), io::Error> {
-    let permissions = metadata.permissions();
-    let mode = permissions.mode();
-    println!("{:>016b} {:>6} {}", mode, metadata.len(), path);
-    Ok(())
-}
-
 fn collect_entries(path: &str) -> Result<Vec<Entry>, io::Error> {
     let mut entries: Vec<Entry> = fs::read_dir(path)?
         .filter_map(|result| result.ok())
@@ -61,7 +54,8 @@ fn show(path: &str) -> Result<(), io::Error> {
     if metadata.is_dir() {
         show_directory(path)
     } else {
-        show_file(path, metadata)
+        Entry::new(path, metadata).show();
+        Ok(())
     }
 }
 
