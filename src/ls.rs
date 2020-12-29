@@ -39,17 +39,19 @@ fn show_file(path: &str, metadata: Metadata) -> Result<(), io::Error> {
     Ok(())
 }
 
-fn collect_entries(path: &str) -> Result<Vec<DirEntry>, io::Error> {
-    let mut entries: Vec<DirEntry> = fs::read_dir(path)?
+fn collect_entries(path: &str) -> Result<Vec<Entry>, io::Error> {
+    let mut entries: Vec<Entry> = fs::read_dir(path)?
+        .filter_map(|result| result.ok())
+        .map(|de| Entry::from_direntry(de))
         .filter_map(|result| result.ok())
         .collect();
-    entries.sort_by(|a, b| a.file_name().cmp(&b.file_name()));
+    entries.sort_by(|a, b| a.filename.cmp(&b.filename));
     Ok(entries)
 }
 
 fn show_directory(path: &str) -> Result<(), io::Error> {
     for entry in collect_entries(path)? {
-        Entry::from_direntry(entry)?.show();
+        entry.show();
     }
     Ok(())
 }
