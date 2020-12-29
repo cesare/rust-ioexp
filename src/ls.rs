@@ -3,12 +3,33 @@ use std::fs::{self, DirEntry, Metadata};
 use std::io::{self};
 use std::os::unix::prelude::*;
 
-fn show_entry(entry: &DirEntry) -> Result<(), io::Error> {
-    let filename = entry.file_name();
-    let metadata = entry.metadata()?;
-    let mode = metadata.permissions().mode();
-    println!("{:>016b} {:>6} {}", mode, metadata.len(), filename.to_string_lossy());
-    Ok(())
+struct Entry {
+    filename: String,
+    metadata: Metadata,
+}
+
+impl Entry {
+    fn new(filename: &str, metadata: Metadata) -> Self {
+        Entry {
+            filename: filename.to_string(),
+            metadata: metadata,
+        }
+    }
+
+    fn from_direntry(de: DirEntry) -> Result<Self, io::Error> {
+        let metadata = de.metadata()?;
+        let filename = de.file_name();
+        Ok(Self::new(&filename.to_string_lossy(), metadata))
+    }
+
+    fn description(&self) -> String {
+        let mode = self.metadata.permissions().mode();
+        format!("{:>016b} {:>6} {}", mode, self.metadata.len(), self.filename)
+    }
+
+    fn show(&self) {
+        println!("{}", self.description());
+    }
 }
 
 fn show_file(path: &str, metadata: Metadata) -> Result<(), io::Error> {
@@ -27,9 +48,8 @@ fn collect_entries(path: &str) -> Result<Vec<DirEntry>, io::Error> {
 }
 
 fn show_directory(path: &str) -> Result<(), io::Error> {
-    let entries = collect_entries(path)?;
-    for entry in entries {
-        show_entry(&entry)?;
+    for entry in collect_entries(path)? {
+        Entry::from_direntry(entry)?.show();
     }
     Ok(())
 }
