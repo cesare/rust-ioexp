@@ -3,6 +3,7 @@ use std::fs::{self, DirEntry, Metadata};
 use std::io::{self};
 use std::os::unix::prelude::*;
 use chrono::{DateTime, Local};
+use users::{get_user_by_uid};
 
 struct Entry {
     filename: String,
@@ -23,6 +24,14 @@ impl Entry {
         Ok(Self::new(&filename.to_string_lossy(), metadata))
     }
 
+    fn username(&self) -> String {
+        let uid = self.metadata.uid();
+        match get_user_by_uid(uid) {
+            Some(user) => user.name().to_string_lossy().to_string(),
+            None => format!("{:03}", uid),
+        }
+    }
+
     fn permission_mode(&self) -> String {
         let mode = self.metadata.permissions().mode();
         format!("{:016b}", mode)
@@ -38,7 +47,7 @@ impl Entry {
     }
 
     fn description(&self) -> Result<String, io::Error> {
-        Ok(format!("{} {} {} {}", self.permission_mode(), self.filesize(), self.modified_at()?, self.filename))
+        Ok(format!("{} {} {} {} {}", self.permission_mode(), self.filesize(), self.username(), self.modified_at()?, self.filename))
     }
 
     fn show(&self) -> Result<(), io::Error> {
