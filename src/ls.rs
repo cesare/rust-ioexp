@@ -23,10 +23,22 @@ impl Entry {
         Ok(Self::new(&filename.to_string_lossy(), metadata))
     }
 
-    fn description(&self) -> Result<String, io::Error> {
+    fn permission_mode(&self) -> String {
         let mode = self.metadata.permissions().mode();
+        format!("{:016b}", mode)
+    }
+
+    fn modified_at(&self) -> Result<String, io::Error> {
         let modified = DateTime::<Local>::from(self.metadata.modified()?).format("%Y-%m-%d %H:%M");
-        Ok(format!("{:>016b} {:>6} {} {}", mode, self.metadata.len(), modified, self.filename))
+        Ok(modified.to_string())
+    }
+
+    fn filesize(&self) -> String {
+        format!("{:>6}", self.metadata.len())
+    }
+
+    fn description(&self) -> Result<String, io::Error> {
+        Ok(format!("{} {} {} {}", self.permission_mode(), self.filesize(), self.modified_at()?, self.filename))
     }
 
     fn show(&self) -> Result<(), io::Error> {
