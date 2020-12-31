@@ -2,6 +2,7 @@ use std::env::args;
 use std::fs::{self, DirEntry, Metadata};
 use std::io::{self};
 use std::os::unix::prelude::*;
+use chrono::{DateTime, Local};
 
 struct Entry {
     filename: String,
@@ -22,13 +23,15 @@ impl Entry {
         Ok(Self::new(&filename.to_string_lossy(), metadata))
     }
 
-    fn description(&self) -> String {
+    fn description(&self) -> Result<String, io::Error> {
         let mode = self.metadata.permissions().mode();
-        format!("{:>016b} {:>6} {}", mode, self.metadata.len(), self.filename)
+        let modified = DateTime::<Local>::from(self.metadata.modified()?).format("%Y-%m-%d %H:%M");
+        Ok(format!("{:>016b} {:>6} {} {}", mode, self.metadata.len(), modified, self.filename))
     }
 
-    fn show(&self) {
-        println!("{}", self.description());
+    fn show(&self) -> Result<(), io::Error> {
+        println!("{}", self.description()?);
+        Ok(())
     }
 }
 
@@ -44,7 +47,7 @@ fn collect_entries(path: &str) -> Result<Vec<Entry>, io::Error> {
 
 fn show_directory(path: &str) -> Result<(), io::Error> {
     for entry in collect_entries(path)? {
-        entry.show();
+        entry.show()?;
     }
     Ok(())
 }
@@ -54,7 +57,7 @@ fn show(path: &str) -> Result<(), io::Error> {
     if metadata.is_dir() {
         show_directory(path)
     } else {
-        Entry::new(path, metadata).show();
+        Entry::new(path, metadata).show()?;
         Ok(())
     }
 }
