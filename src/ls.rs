@@ -45,9 +45,12 @@ impl Entry {
         let cs = [
             ['-', 'x'],
             ['S', 's'],
+            ['T', 't'],
         ];
 
         let executable = mode_for_target & 0b001 == 0b001;
+        let sticky = mode_for_target & 0o1000 == 0o1000;
+
         let x = if executable { 1 } else { 0 };
         let y = match target {
             PermissionTarget::Owner => {
@@ -56,7 +59,9 @@ impl Entry {
             PermissionTarget::Group => {
                 if self.is_setgid() { 1 } else { 0 }
             }
-            PermissionTarget::Other => 0
+            PermissionTarget::Other => {
+                if sticky { 2 } else { 0 }
+            }
         };
         cs[y][x] as u8
     }
