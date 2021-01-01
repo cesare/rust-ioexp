@@ -32,9 +32,27 @@ impl Entry {
         }
     }
 
+    fn mode_expression(&self, mode: u32) -> String {
+        let mut cs: Vec<u8> = vec!['-' as u8; 3];
+        if mode & 0b100 == 0b100 {
+            cs[0] = 'r' as u8
+        }
+        if mode & 0b010 == 0b010 {
+            cs[1] = 'w' as u8
+        }
+        if mode & 0b001 == 0b001 {
+            cs[2] = 'x' as u8
+        }
+        String::from_utf8_lossy(&cs).to_string()
+    }
+
     fn permission_mode(&self) -> String {
         let mode = self.metadata.permissions().mode();
-        format!("{:016b}", mode)
+        let mode_for_owner = self.mode_expression((mode >> 6) & 0b111);
+        let mode_for_group = self.mode_expression((mode >> 3) & 0b111);
+        let mode_for_other = self.mode_expression(mode & 0b111);
+        let filetype = (mode >> 9) & 0xff;
+        format!("{:08b} {}{}{}", filetype, mode_for_owner, mode_for_group, mode_for_other)
     }
 
     fn modified_at(&self) -> Result<String, io::Error> {
