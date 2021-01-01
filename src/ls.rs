@@ -5,6 +5,7 @@ use std::os::unix::prelude::*;
 use chrono::{DateTime, Local};
 use users::{get_user_by_uid};
 
+#[derive(PartialEq)]
 enum PermissionTarget {
     Owner,
     Group,
@@ -57,7 +58,14 @@ impl Entry {
             cs[1] = 'w' as u8
         }
         if mode_for_target & 0b001 == 0b001 {
-            cs[2] = 'x' as u8
+            cs[2] =
+                if target == PermissionTarget::Owner && self.is_setuid() {
+                    's' as u8
+                } else if target == PermissionTarget::Group && self.is_setgid() {
+                    's' as u8
+                } else {
+                    'x' as u8
+                }
         }
         String::from_utf8_lossy(&cs).to_string()
     }
@@ -69,6 +77,14 @@ impl Entry {
         let mode_for_other = self.mode_expression(PermissionTarget::Other);
         let filetype = (mode >> 9) & 0xff;
         format!("{:08b} {}{}{}", filetype, mode_for_owner, mode_for_group, mode_for_other)
+    }
+
+    fn is_setuid(&self) -> bool {
+        self.mode & 0o4000 == 0o4000
+    }
+
+    fn is_setgid(&self) -> bool {
+        self.mode & 0o2000 == 0o2000
     }
 
     fn modified_at(&self) -> Result<String, io::Error> {
