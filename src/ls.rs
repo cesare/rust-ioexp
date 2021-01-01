@@ -5,6 +5,12 @@ use std::os::unix::prelude::*;
 use chrono::{DateTime, Local};
 use users::{get_user_by_uid};
 
+enum PermissionTarget {
+    Owner,
+    Group,
+    Other,
+}
+
 struct Entry {
     filename: String,
     metadata: Metadata,
@@ -32,15 +38,23 @@ impl Entry {
         }
     }
 
-    fn mode_expression(&self, mode: u32) -> String {
+    fn mode_expression(&self, target: PermissionTarget) -> String {
+        let mode = self.metadata.permissions().mode();
+        let mode_for_target =
+            match target {
+                PermissionTarget::Owner => mode >> 6,
+                PermissionTarget::Group => mode >> 3,
+                PermissionTarget::Other => mode,
+            };
+
         let mut cs: Vec<u8> = vec!['-' as u8; 3];
-        if mode & 0b100 == 0b100 {
+        if mode_for_target & 0b100 == 0b100 {
             cs[0] = 'r' as u8
         }
-        if mode & 0b010 == 0b010 {
+        if mode_for_target & 0b010 == 0b010 {
             cs[1] = 'w' as u8
         }
-        if mode & 0b001 == 0b001 {
+        if mode_for_target & 0b001 == 0b001 {
             cs[2] = 'x' as u8
         }
         String::from_utf8_lossy(&cs).to_string()
@@ -48,9 +62,9 @@ impl Entry {
 
     fn permission_mode(&self) -> String {
         let mode = self.metadata.permissions().mode();
-        let mode_for_owner = self.mode_expression((mode >> 6) & 0b111);
-        let mode_for_group = self.mode_expression((mode >> 3) & 0b111);
-        let mode_for_other = self.mode_expression(mode & 0b111);
+        let mode_for_owner = self.mode_expression(PermissionTarget::Owner);
+        let mode_for_group = self.mode_expression(PermissionTarget::Group);
+        let mode_for_other = self.mode_expression(PermissionTarget::Other);
         let filetype = (mode >> 9) & 0xff;
         format!("{:08b} {}{}{}", filetype, mode_for_owner, mode_for_group, mode_for_other)
     }
