@@ -41,6 +41,26 @@ impl Entry {
         }
     }
 
+    fn execution_mode(&self, mode_for_target: u32, target: PermissionTarget) -> u8 {
+        let cs = [
+            ['-', 'x'],
+            ['S', 's'],
+        ];
+
+        let executable = mode_for_target & 0b001 == 0b001;
+        let x = if executable { 1 } else { 0 };
+        let y = match target {
+            PermissionTarget::Owner => {
+                if self.is_setuid() { 1 } else { 0 }
+            }
+            PermissionTarget::Group => {
+                if self.is_setgid() { 1 } else { 0 }
+            }
+            PermissionTarget::Other => 0
+        };
+        cs[y][x] as u8
+    }
+
     fn mode_expression(&self, target: PermissionTarget) -> String {
         let mode = self.mode;
         let mode_for_target =
@@ -57,16 +77,7 @@ impl Entry {
         if mode_for_target & 0b010 == 0b010 {
             cs[1] = 'w' as u8
         }
-        if mode_for_target & 0b001 == 0b001 {
-            cs[2] =
-                if target == PermissionTarget::Owner && self.is_setuid() {
-                    's' as u8
-                } else if target == PermissionTarget::Group && self.is_setgid() {
-                    's' as u8
-                } else {
-                    'x' as u8
-                }
-        }
+        cs[2] = self.execution_mode(mode_for_target, target);
         String::from_utf8_lossy(&cs).to_string()
     }
 
