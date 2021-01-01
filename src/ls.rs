@@ -44,12 +44,12 @@ impl Entry {
     fn file_type(&self) -> char {
         let mask = 0o170000;
         let patterns: Vec<(u32, char)> = vec![
-            (0o010000, 'p'),
-            (0o020000, 'c'),
-            (0o040000, 'd'),
-            (0o060000, 'b'),
-            (0o120000, 'l'),
-            (0o140000, 's'),
+            (0o010000, 'p'), // named pipe
+            (0o020000, 'c'), // character special
+            (0o040000, 'd'), // directory
+            (0o060000, 'b'), // block special
+            (0o120000, 'l'), // symbolic link
+            (0o140000, 's'), // socket
         ];
 
         match patterns.iter().find(|(b, _c)| self.mode & mask == *b).map(|(_b, c)| *c) {
