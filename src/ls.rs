@@ -14,20 +14,22 @@ enum PermissionTarget {
 struct Entry {
     filename: String,
     metadata: Metadata,
+    mode: u32,
 }
 
 impl Entry {
-    fn new(filename: &str, metadata: Metadata) -> Self {
+    fn new(filename: &str, metadata: &Metadata) -> Self {
         Entry {
             filename: filename.to_string(),
-            metadata: metadata,
+            metadata: metadata.to_owned(),
+            mode: metadata.permissions().mode(),
         }
     }
 
     fn from_direntry(de: DirEntry) -> Result<Self, io::Error> {
         let metadata = de.metadata()?;
         let filename = de.file_name();
-        Ok(Self::new(&filename.to_string_lossy(), metadata))
+        Ok(Self::new(&filename.to_string_lossy(), &metadata))
     }
 
     fn username(&self) -> String {
@@ -39,7 +41,7 @@ impl Entry {
     }
 
     fn mode_expression(&self, target: PermissionTarget) -> String {
-        let mode = self.metadata.permissions().mode();
+        let mode = self.mode;
         let mode_for_target =
             match target {
                 PermissionTarget::Owner => mode >> 6,
@@ -61,7 +63,7 @@ impl Entry {
     }
 
     fn permission_mode(&self) -> String {
-        let mode = self.metadata.permissions().mode();
+        let mode = self.mode;
         let mode_for_owner = self.mode_expression(PermissionTarget::Owner);
         let mode_for_group = self.mode_expression(PermissionTarget::Group);
         let mode_for_other = self.mode_expression(PermissionTarget::Other);
@@ -110,7 +112,7 @@ fn show(path: &str) -> Result<(), io::Error> {
     if metadata.is_dir() {
         show_directory(path)
     } else {
-        Entry::new(path, metadata).show()?;
+        Entry::new(path, &metadata).show()?;
         Ok(())
     }
 }
