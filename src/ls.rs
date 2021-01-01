@@ -41,6 +41,23 @@ impl Entry {
         }
     }
 
+    fn file_type(&self) -> char {
+        let mask = 0o170000;
+        let patterns: Vec<(u32, char)> = vec![
+            (0o010000, 'p'),
+            (0o020000, 'c'),
+            (0o040000, 'd'),
+            (0o060000, 'b'),
+            (0o120000, 'l'),
+            (0o140000, 's'),
+        ];
+
+        match patterns.iter().find(|(b, _c)| self.mode & mask == *b).map(|(_b, c)| *c) {
+            Some(c) => c,
+            None => '.'
+        }
+    }
+
     fn execution_mode(&self, mode_for_target: u32, target: PermissionTarget) -> u8 {
         let cs = [
             ['-', 'x'],
@@ -87,12 +104,11 @@ impl Entry {
     }
 
     fn permission_mode(&self) -> String {
-        let mode = self.mode;
         let mode_for_owner = self.mode_expression(PermissionTarget::Owner);
         let mode_for_group = self.mode_expression(PermissionTarget::Group);
         let mode_for_other = self.mode_expression(PermissionTarget::Other);
-        let filetype = (mode >> 9) & 0xff;
-        format!("{:08b} {}{}{}", filetype, mode_for_owner, mode_for_group, mode_for_other)
+        let filetype = self.file_type();
+        format!("{}{}{}{}", filetype, mode_for_owner, mode_for_group, mode_for_other)
     }
 
     fn is_setuid(&self) -> bool {
