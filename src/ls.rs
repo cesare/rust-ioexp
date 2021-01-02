@@ -166,7 +166,11 @@ fn show(path: &str) -> Result<(), io::Error> {
 }
 
 fn main() -> Result<(), io::Error> {
-    let arguments: Vec<String> = args().skip(1).collect();
+    let mut arguments: Vec<String> = args().skip(1).collect();
+    if arguments.is_empty() {
+        arguments.push(".".to_string())
+    }
+
     for path in arguments {
         show(&path)?;
     }
