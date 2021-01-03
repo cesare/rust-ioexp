@@ -1,4 +1,5 @@
 use std::env::args;
+use std::fmt;
 use std::fs::{self, DirEntry, Metadata};
 use std::io::{self};
 use std::os::unix::prelude::*;
@@ -85,20 +86,22 @@ impl Permissions {
         String::from_utf8_lossy(&cs).to_string()
     }
 
-    fn permission_mode(&self) -> String {
-        let mode_for_owner = self.mode_expression(PermissionTarget::Owner);
-        let mode_for_group = self.mode_expression(PermissionTarget::Group);
-        let mode_for_other = self.mode_expression(PermissionTarget::Other);
-        let filetype = self.file_type();
-        format!("{}{}{}{}", filetype, mode_for_owner, mode_for_group, mode_for_other)
-    }
-
     fn is_setuid(&self) -> bool {
         self.mode & 0o4000 == 0o4000
     }
 
     fn is_setgid(&self) -> bool {
         self.mode & 0o2000 == 0o2000
+    }
+}
+
+impl fmt::Display for Permissions {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mode_for_owner = self.mode_expression(PermissionTarget::Owner);
+        let mode_for_group = self.mode_expression(PermissionTarget::Group);
+        let mode_for_other = self.mode_expression(PermissionTarget::Other);
+        let filetype = self.file_type();
+        write!(f, "{}{}{}{}", filetype, mode_for_owner, mode_for_group, mode_for_other)
     }
 }
 
@@ -141,7 +144,7 @@ impl Entry {
     }
 
     fn description(&self) -> Result<String, io::Error> {
-        Ok(format!("{} {} {} {} {}", self.permissions.permission_mode(), self.filesize(), self.username(), self.modified_at()?, self.filename))
+        Ok(format!("{} {} {} {} {}", self.permissions, self.filesize(), self.username(), self.modified_at()?, self.filename))
     }
 
     fn show(&self) -> Result<(), io::Error> {
