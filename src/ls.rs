@@ -12,32 +12,14 @@ enum PermissionTarget {
     Other,
 }
 
-struct Entry {
-    filename: String,
-    metadata: Metadata,
+struct Permissions {
     mode: u32,
 }
 
-impl Entry {
-    fn new(filename: &str, metadata: &Metadata) -> Self {
-        Entry {
-            filename: filename.to_string(),
-            metadata: metadata.to_owned(),
-            mode: metadata.permissions().mode(),
-        }
-    }
-
-    fn from_direntry(de: DirEntry) -> Result<Self, io::Error> {
-        let metadata = de.metadata()?;
-        let filename = de.file_name();
-        Ok(Self::new(&filename.to_string_lossy(), &metadata))
-    }
-
-    fn username(&self) -> String {
-        let uid = self.metadata.uid();
-        match get_user_by_uid(uid) {
-            Some(user) => user.name().to_string_lossy().to_string(),
-            None => format!("{:03}", uid),
+impl Permissions {
+    fn new(mode: u32) -> Self {
+        Permissions {
+            mode: mode,
         }
     }
 
@@ -118,6 +100,36 @@ impl Entry {
     fn is_setgid(&self) -> bool {
         self.mode & 0o2000 == 0o2000
     }
+}
+
+struct Entry {
+    filename: String,
+    metadata: Metadata,
+    permissions: Permissions,
+}
+
+impl Entry {
+    fn new(filename: &str, metadata: &Metadata) -> Self {
+        Entry {
+            filename: filename.to_string(),
+            metadata: metadata.to_owned(),
+            permissions: Permissions::new(metadata.permissions().mode()),
+        }
+    }
+
+    fn from_direntry(de: DirEntry) -> Result<Self, io::Error> {
+        let metadata = de.metadata()?;
+        let filename = de.file_name();
+        Ok(Self::new(&filename.to_string_lossy(), &metadata))
+    }
+
+    fn username(&self) -> String {
+        let uid = self.metadata.uid();
+        match get_user_by_uid(uid) {
+            Some(user) => user.name().to_string_lossy().to_string(),
+            None => format!("{:03}", uid),
+        }
+    }
 
     fn modified_at(&self) -> Result<String, io::Error> {
         let modified = DateTime::<Local>::from(self.metadata.modified()?).format("%Y-%m-%d %H:%M");
@@ -129,7 +141,7 @@ impl Entry {
     }
 
     fn description(&self) -> Result<String, io::Error> {
-        Ok(format!("{} {} {} {} {}", self.permission_mode(), self.filesize(), self.username(), self.modified_at()?, self.filename))
+        Ok(format!("{} {} {} {} {}", self.permissions.permission_mode(), self.filesize(), self.username(), self.modified_at()?, self.filename))
     }
 
     fn show(&self) -> Result<(), io::Error> {
@@ -156,7 +168,7 @@ fn show_directory(path: &str) -> Result<(), io::Error> {
 }
 
 fn show(path: &str) -> Result<(), io::Error> {
-    let metadata = fs::metadata(path)?;
+    let metadata = fs::symlink_metadata(path)?;
     if metadata.is_dir() {
         show_directory(path)
     } else {
