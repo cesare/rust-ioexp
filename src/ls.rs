@@ -17,7 +17,12 @@ struct Filesize(u64);
 
 impl fmt::Display for Filesize {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:>6}", self.0)
+        let units = ["", "k", "M", "G", "T", "P", "E"];
+        let ns = (0..6).map(|i| 1 << (i * 10))
+            .map(|d| self.0 as f64 / d as f64)
+            .map(|f| f.round() as u64);
+        let (u, n) = units.iter().zip(ns).find(|(_u, n)| n < &1024).unwrap();
+        write!(f, "{:>4}{:>1}", n, u)
     }
 }
 
