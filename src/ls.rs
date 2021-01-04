@@ -13,6 +13,14 @@ enum PermissionTarget {
     Other,
 }
 
+struct Filesize(u64);
+
+impl fmt::Display for Filesize {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:>6}", self.0)
+    }
+}
+
 struct Permissions {
     mode: u32,
 }
@@ -108,6 +116,7 @@ impl fmt::Display for Permissions {
 struct Entry {
     filename: String,
     metadata: Metadata,
+    size: Filesize,
     permissions: Permissions,
 }
 
@@ -116,6 +125,7 @@ impl Entry {
         Entry {
             filename: filename.to_string(),
             metadata: metadata.to_owned(),
+            size: Filesize(metadata.len()),
             permissions: Permissions::new(metadata.permissions().mode()),
         }
     }
@@ -139,12 +149,8 @@ impl Entry {
         Ok(modified.to_string())
     }
 
-    fn filesize(&self) -> String {
-        format!("{:>6}", self.metadata.len())
-    }
-
     fn description(&self) -> Result<String, io::Error> {
-        Ok(format!("{} {} {} {} {}", self.permissions, self.filesize(), self.username(), self.modified_at()?, self.filename))
+        Ok(format!("{} {} {} {} {}", self.permissions, self.size, self.username(), self.modified_at()?, self.filename))
     }
 
     fn show(&self) -> Result<(), io::Error> {
