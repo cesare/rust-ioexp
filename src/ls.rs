@@ -3,6 +3,7 @@ use std::fmt;
 use std::fs::{self, DirEntry, Metadata};
 use std::io::{self};
 use std::os::unix::prelude::*;
+use std::time::SystemTime;
 use chrono::{DateTime, Local};
 use users::{get_user_by_uid};
 
@@ -118,6 +119,15 @@ impl fmt::Display for Permissions {
     }
 }
 
+struct Timestamp(SystemTime);
+
+impl fmt::Display for Timestamp {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let ts = DateTime::<Local>::from(self.0).format("%Y-%m-%d %H:%M");
+        write!(f, "{}", ts)
+    }
+}
+
 struct Entry {
     filename: String,
     metadata: Metadata,
@@ -149,13 +159,9 @@ impl Entry {
         }
     }
 
-    fn modified_at(&self) -> Result<String, io::Error> {
-        let modified = DateTime::<Local>::from(self.metadata.modified()?).format("%Y-%m-%d %H:%M");
-        Ok(modified.to_string())
-    }
-
     fn description(&self) -> Result<String, io::Error> {
-        Ok(format!("{} {} {} {} {}", self.permissions, self.size, self.username(), self.modified_at()?, self.filename))
+        let modified_at = Timestamp(self.metadata.modified()?).to_string();
+        Ok(format!("{} {} {} {} {}", self.permissions, self.size, self.username(), modified_at, self.filename))
     }
 
     fn show(&self) -> Result<(), io::Error> {
