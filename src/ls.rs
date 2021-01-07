@@ -163,14 +163,11 @@ impl Entry {
         Ok(Self::new(&filename.to_string_lossy(), &metadata))
     }
 
-    fn description(&self) -> Result<String, io::Error> {
+    fn show(&self) -> Result<(), io::Error> {
         let modified_at = Timestamp(self.metadata.modified()?).to_string();
         let user = User(self.metadata.uid());
-        Ok(format!("{} {} {} {} {}", self.permissions, self.size, user, modified_at, self.filename))
-    }
+        println!("{} {} {} {} {}", self.permissions, self.size, user, modified_at, self.filename);
 
-    fn show(&self) -> Result<(), io::Error> {
-        println!("{}", self.description()?);
         Ok(())
     }
 }
