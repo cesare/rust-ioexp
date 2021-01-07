@@ -128,6 +128,18 @@ impl fmt::Display for Timestamp {
     }
 }
 
+struct User(u32);
+
+impl fmt::Display for User {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let uid = self.0;
+        match get_user_by_uid(uid) {
+            Some(user) => write!(f, "{}", user.name().to_string_lossy()),
+            None => write!(f, "{:03}", uid),
+        }
+    }
+}
+
 struct Entry {
     filename: String,
     metadata: Metadata,
@@ -151,17 +163,10 @@ impl Entry {
         Ok(Self::new(&filename.to_string_lossy(), &metadata))
     }
 
-    fn username(&self) -> String {
-        let uid = self.metadata.uid();
-        match get_user_by_uid(uid) {
-            Some(user) => user.name().to_string_lossy().to_string(),
-            None => format!("{:03}", uid),
-        }
-    }
-
     fn description(&self) -> Result<String, io::Error> {
         let modified_at = Timestamp(self.metadata.modified()?).to_string();
-        Ok(format!("{} {} {} {} {}", self.permissions, self.size, self.username(), modified_at, self.filename))
+        let user = User(self.metadata.uid());
+        Ok(format!("{} {} {} {} {}", self.permissions, self.size, user, modified_at, self.filename))
     }
 
     fn show(&self) -> Result<(), io::Error> {
