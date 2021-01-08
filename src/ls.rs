@@ -143,7 +143,6 @@ impl fmt::Display for User {
 struct Entry {
     filename: String,
     metadata: Metadata,
-    size: Filesize,
     permissions: Permissions,
 }
 
@@ -152,7 +151,6 @@ impl Entry {
         Entry {
             filename: filename.to_string(),
             metadata: metadata.to_owned(),
-            size: Filesize(metadata.len()),
             permissions: Permissions::new(metadata.permissions().mode()),
         }
     }
@@ -166,7 +164,8 @@ impl Entry {
     fn show(&self) -> Result<(), io::Error> {
         let modified_at = Timestamp(self.metadata.modified()?).to_string();
         let user = User(self.metadata.uid());
-        println!("{} {} {} {} {}", self.permissions, self.size, user, modified_at, self.filename);
+        let size = Filesize(self.metadata.len());
+        println!("{} {} {} {} {}", self.permissions, size, user, modified_at, self.filename);
 
         Ok(())
     }
