@@ -193,8 +193,7 @@ fn show(path: &str) -> Result<(), io::Error> {
     if metadata.is_dir() {
         show_directory(path)
     } else {
-        Entry::new(path, &metadata).show()?;
-        Ok(())
+        Entry::new(path, &metadata).show()
     }
 }
 
