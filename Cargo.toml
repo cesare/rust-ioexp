@@ -32,6 +32,10 @@ path = "src/tee.rs"
 name = "ls"
 path = "src/ls.rs"
 
+[[bin]]
+name = "echo_server"
+path = "src/echo_server.rs"
+
 [dependencies]
 async-std = { version = "1.8.0", features = ["attributes"] }
 chrono = "0.4.19"
