@@ -13,10 +13,16 @@ struct Opt {
     port: u32,
 }
 
+impl Opt {
+    fn bind_address(&self) -> String {
+        format!("{}:{}", self.bind, self.port)
+    }
+}
+
 #[async_std::main]
 async fn main() -> io::Result<()> {
     let opt = Opt::from_args();
-    let bind_address = format!("{}:{}", opt.bind, opt.port);
+    let bind_address = opt.bind_address();
     println!("Waiting for requests on {}", bind_address);
 
     let listener = TcpListener::bind(bind_address).await?;

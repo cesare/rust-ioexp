@@ -13,6 +13,12 @@ struct Opt {
     port: u32,
 }
 
+impl Opt {
+    fn bind_address(&self) -> String {
+        format!("{}:{}", self.bind, self.port)
+    }
+}
+
 async fn read_line() -> io::Result<Option<String>> {
     let mut buf = String::new();
     match io::stdin().read_line(&mut buf).await? {
@@ -24,8 +30,7 @@ async fn read_line() -> io::Result<Option<String>> {
 #[async_std::main]
 async fn main() -> io::Result<()> {
     let opt = Opt::from_args();
-    let bind_address = format!("{}:{}", opt.bind, opt.port);
-    let mut stream = TcpStream::connect(bind_address).await?;
+    let mut stream = TcpStream::connect(opt.bind_address()).await?;
 
     while let Some(message) = read_line().await? {
         stream.write_all(message.as_bytes()).await?;
