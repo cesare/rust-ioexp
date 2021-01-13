@@ -1,5 +1,5 @@
 use async_std::io::{self};
-use async_std::net::TcpListener;
+use async_std::net::{TcpListener, TcpStream};
 use async_std::prelude::*;
 use structopt::StructOpt;
 
@@ -19,6 +19,11 @@ impl Opt {
     }
 }
 
+async fn handle(stream: TcpStream) {
+    let (reader, writer) = &mut (&stream, &stream);
+    let _ = io::copy(reader, writer).await;
+}
+
 #[async_std::main]
 async fn main() -> io::Result<()> {
     let opt = Opt::from_args();
@@ -29,9 +34,7 @@ async fn main() -> io::Result<()> {
     let mut incoming = listener.incoming();
 
     while let Some(stream) = incoming.next().await {
-        let stream = stream?;
-        let (reader, writer) = &mut (&stream, &stream);
-        io::copy(reader, writer).await?;
+        handle(stream?).await;
     }
 
     Ok(())
