@@ -1,6 +1,6 @@
 use async_std::io::{self};
 use async_std::net::{TcpListener, TcpStream};
-use async_std::prelude::*;
+use futures::stream::StreamExt;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -31,11 +31,10 @@ async fn main() -> io::Result<()> {
     println!("Waiting for requests on {}", bind_address);
 
     let listener = TcpListener::bind(bind_address).await?;
-    let mut incoming = listener.incoming();
-
-    while let Some(stream) = incoming.next().await {
-        handle(stream?).await;
-    }
+    listener.incoming().for_each_concurrent(None, |tcpstream| async move {
+        let tcpstream = tcpstream.unwrap();
+        handle(tcpstream).await;
+    }).await;
 
     Ok(())
 }
