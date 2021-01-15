@@ -44,7 +44,7 @@ path = "src/echo_client.rs"
 async-std = { version = "1.8.0", features = ["attributes"] }
 chrono = "0.4.19"
 futures = "0.3.8"
-hyper = "0.13.9"
+hyper = "~0.14"
 pin-project = "1.0.2"
 reqwest = "0.10.10"
 structopt = "0.3.21"
