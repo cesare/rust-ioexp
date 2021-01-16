@@ -32,6 +32,8 @@ async fn main() -> io::Result<()> {
     let listener = TcpListener::bind(bind_address).await?;
     loop {
         let (tcpstream, _) = listener.accept().await?;
-        handle(tcpstream).await;
+        tokio::spawn(async move {
+            handle(tcpstream).await;
+        });
     }
 }
