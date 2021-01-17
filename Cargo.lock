@@ -621,6 +621,7 @@ dependencies = [
  "reqwest",
  "structopt",
  "tokio",
+ "tokio-stream",
  "tokio-util",
  "users",
 ]
