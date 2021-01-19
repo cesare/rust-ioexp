@@ -1,4 +1,4 @@
-use tokio::io::{self, AsyncBufReadExt, BufReader};
+use tokio::io::{self, AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 use structopt::StructOpt;
 
@@ -21,29 +21,16 @@ impl Opt {
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let opt = Opt::from_args();
-    let stream = TcpStream::connect(opt.bind_address()).await?;
+    let tcpstream = TcpStream::connect(opt.bind_address()).await?;
+    let (mut r, mut w) = tcpstream.into_split();
 
     let mut lines = BufReader::new(io::stdin()).lines();
     while let Some(message) = lines.next_line().await? {
-        stream.writable().await?;
-        stream.try_write(message.as_ref())?;
+        w.write_all(format!("{}\n", message).as_ref()).await?;
 
-        let mut buf = vec![0; 1024];
-        loop {
-            stream.readable().await?;
-            match stream.try_read(&mut buf) {
-                Ok(0) => break,
-                Ok(n) => {
-                    buf.truncate(n);
-                    println!("reply = {:?}", buf);
-                    break;
-                }
-                Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                    continue;
-                }
-                Err(e) => return Err(e.into())
-            }
-        }
+        let mut buf = vec![0u8; 1024];
+        let _n = r.read(&mut buf).await?;
+        io::stdout().write(&buf).await?;
     }
 
     Ok(())
