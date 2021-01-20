@@ -18,15 +18,35 @@ impl Opt {
     }
 }
 
+struct InputStream {
+    reader: BufReader<io::Stdin>,
+}
+
+impl InputStream {
+    fn new() -> Self {
+        InputStream {
+            reader: BufReader::new(io::stdin()),
+        }
+    }
+
+    async fn read_line(&mut self) -> io::Result<Option<String>> {
+        let mut buf = String::new();
+        match self.reader.read_line(&mut buf).await? {
+            0 => Ok(None),
+            _ => Ok(Some(buf)),
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let opt = Opt::from_args();
     let tcpstream = TcpStream::connect(opt.bind_address()).await?;
     let (mut r, mut w) = tcpstream.into_split();
 
-    let mut lines = BufReader::new(io::stdin()).lines();
-    while let Some(message) = lines.next_line().await? {
-        w.write_all(format!("{}\n", message).as_ref()).await?;
+    let mut input_stream = InputStream::new();
+    while let Some(message) = input_stream.read_line().await? {
+        w.write_all(message.as_ref()).await?;
 
         let mut buf = vec![0u8; 1024];
         let _n = r.read(&mut buf).await?;
