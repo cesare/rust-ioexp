@@ -22,15 +22,13 @@ struct InputStream<R> {
     reader: BufReader<R>,
 }
 
-impl From<io::Stdin> for InputStream<io::Stdin> {
-    fn from(stdin: io::Stdin) -> Self {
+impl<R: AsyncRead + Unpin> InputStream<R> {
+    fn new(read: R) -> Self {
         InputStream {
-            reader: BufReader::new(stdin),
+            reader: BufReader::new(read),
         }
     }
-}
 
-impl<R: AsyncRead + Unpin> InputStream<R> {
     async fn read_line(&mut self) -> io::Result<Option<String>> {
         let mut buf = String::new();
         match self.reader.read_line(&mut buf).await? {
@@ -46,7 +44,7 @@ async fn main() -> io::Result<()> {
     let tcpstream = TcpStream::connect(opt.bind_address()).await?;
     let (mut r, mut w) = tcpstream.into_split();
 
-    let mut input_stream = InputStream::from(io::stdin());
+    let mut input_stream = InputStream::new(io::stdin());
     while let Some(message) = input_stream.read_line().await? {
         w.write_all(message.as_ref()).await?;
 
