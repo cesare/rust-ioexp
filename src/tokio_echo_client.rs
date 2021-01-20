@@ -1,4 +1,4 @@
-use tokio::io::{self, AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{self, AsyncBufReadExt, AsyncRead, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 use structopt::StructOpt;
 
@@ -42,15 +42,17 @@ impl<R: AsyncRead + Unpin> InputStream<R> {
 async fn main() -> io::Result<()> {
     let opt = Opt::from_args();
     let tcpstream = TcpStream::connect(opt.bind_address()).await?;
-    let (mut r, mut w) = tcpstream.into_split();
+    let (r, mut w) = tcpstream.into_split();
 
     let mut input_stream = InputStream::new(io::stdin());
+    let mut server_stream = InputStream::new(r);
+
     while let Some(message) = input_stream.read_line().await? {
         w.write_all(message.as_ref()).await?;
 
-        let mut buf = vec![0u8; 1024];
-        let _n = r.read(&mut buf).await?;
-        io::stdout().write(&buf).await?;
+        if let Some(response) = server_stream.read_line().await? {
+            io::stdout().write(response.as_bytes()).await?;
+        }
     }
 
     Ok(())
