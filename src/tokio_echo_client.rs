@@ -55,5 +55,6 @@ async fn main() -> io::Result<()> {
         }
     }
 
+    w.shutdown().await?;
     Ok(())
 }
