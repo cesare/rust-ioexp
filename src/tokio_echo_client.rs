@@ -1,5 +1,6 @@
 use tokio::io::{self, AsyncBufReadExt, AsyncRead, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
+use tokio::net::tcp::OwnedReadHalf;
 use structopt::StructOpt;
 
 #[derive(StructOpt, Debug)]
@@ -38,23 +39,31 @@ impl<R: AsyncRead + Unpin> InputStream<R> {
     }
 }
 
+async fn wait_for_responses(read: OwnedReadHalf) -> Result<(), io::Error> {
+    let mut server_stream = InputStream::new(read);
+    while let Some(message) = server_stream.read_line().await? {
+        io::stdout().write(message.as_bytes()).await?;
+    }
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let opt = Opt::from_args();
     let tcpstream = TcpStream::connect(opt.bind_address()).await?;
     let (r, mut w) = tcpstream.into_split();
 
-    let mut input_stream = InputStream::new(io::stdin());
-    let mut server_stream = InputStream::new(r);
+    let join_handle = tokio::spawn(async move {
+        let _ = wait_for_responses(r).await;
+    });
 
+    let mut input_stream = InputStream::new(io::stdin());
     while let Some(message) = input_stream.read_line().await? {
         w.write_all(message.as_ref()).await?;
-
-        if let Some(response) = server_stream.read_line().await? {
-            io::stdout().write(response.as_bytes()).await?;
-        }
     }
 
     w.shutdown().await?;
+    join_handle.await?;
+
     Ok(())
 }
