@@ -174,7 +174,7 @@ impl Entry {
 fn collect_entries(path: &str) -> Result<Vec<Entry>, io::Error> {
     let mut entries: Vec<Entry> = fs::read_dir(path)?
         .filter_map(|result| result.ok())
-        .map(|de| Entry::from_direntry(de))
+        .map(Entry::from_direntry)
         .filter_map(|result| result.ok())
         .collect();
     entries.sort_by(|a, b| a.filename.cmp(&b.filename));
