@@ -41,7 +41,7 @@ impl<R: AsyncRead + Unpin> InputStream<R> {
 async fn wait_for_responses<R: AsyncRead + Unpin>(read: R) -> Result<(), io::Error> {
     let mut server_stream = InputStream::new(read);
     while let Some(message) = server_stream.read_line().await? {
-        io::stdout().write(message.as_bytes()).await?;
+        io::stdout().write_all(message.as_bytes()).await?;
     }
     Ok(())
 }

@@ -13,7 +13,7 @@ impl<T: Read> FileInputStream<T> {
         for result in self {
             match result {
                 Err(e) => { return Err(e) },
-                Ok(content) => { io::stdout().write(&content)?; }
+                Ok(content) => { io::stdout().write_all(&content)?; }
             }
         }
         Ok(())

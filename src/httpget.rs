@@ -13,11 +13,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
   let mut response = reqwest::get(uri).await?;
 
   for (key, value) in response.headers() {
-    io::stdout().write(format!("{}: {}\n", key, value.to_str()?).as_bytes()).await?;
+    io::stdout().write_all(format!("{}: {}\n", key, value.to_str()?).as_bytes()).await?;
   }
 
   while let Some(chunk) = response.chunk().await? {
-    io::stdout().write(chunk.as_ref()).await?;
+    io::stdout().write_all(chunk.as_ref()).await?;
   }
 
   Ok(())
