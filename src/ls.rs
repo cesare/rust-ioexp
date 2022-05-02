@@ -49,10 +49,10 @@ impl Permissions {
             (0o140000, 's'), // socket
         ];
 
-        match patterns.iter().find(|(b, _c)| self.mode & mask == *b).map(|(_b, c)| *c) {
-            Some(c) => c,
-            None => '.'
-        }
+        patterns.iter()
+            .find(|(b, _c)| self.mode & mask == *b)
+            .map(|(_b, c)| *c)
+            .unwrap_or('.')
     }
 
     fn execution_mode(&self, mode_for_target: u32, target: PermissionTarget) -> u8 {
