@@ -34,7 +34,7 @@ struct Permissions {
 impl Permissions {
     fn new(mode: u32) -> Self {
         Permissions {
-            mode: mode,
+            mode,
         }
     }
 
